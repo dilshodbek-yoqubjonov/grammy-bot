@@ -1,0 +1,21 @@
+{
+  "name": "telegraf-bot",
+  "version": "1.0.0",
+  "main": "telegra.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon ./bot.ts"
+  },
+  "keywords": [],
+  "type": "module",
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "nodemon": "^3.1.7"
+  },
+  "dependencies": {
+    "grammy": "^1.31.3",
+    "typescript": "^5.6.3"
+  }
+}
