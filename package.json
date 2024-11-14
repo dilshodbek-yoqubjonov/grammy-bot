@@ -1,21 +1,26 @@
 {
   "name": "telegraf-bot",
   "version": "1.0.0",
-  "main": "telegra.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon ./bot.ts"
-  },
+  "main": "bot.ts",
+  "scripts": {},
   "keywords": [],
-  "type": "module",
+  "module": "commonjs",
   "author": "",
   "license": "ISC",
   "description": "",
   "devDependencies": {
-    "nodemon": "^3.1.7"
+    "@types/node": "^22.9.0",
+    "concurrently": "^9.1.0",
+    "nodemon": "^3.1.7",
+    "ts-node": "^10.9.2"
   },
   "dependencies": {
+    "dotenv": "^16.4.5",
+    "esm": "^3.2.25",
     "grammy": "^1.31.3",
-    "typescript": "^5.6.3"
+    "node-fetch": "^3.3.2",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.6.3",
+    "whatwg-url": "^14.0.0"
   }
 }
