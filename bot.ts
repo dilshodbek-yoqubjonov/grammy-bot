@@ -1,12 +1,14 @@
 import { Bot, Context } from "grammy";
 import dotenv from "dotenv";
+import { log } from "console";
 
 dotenv.config();
 
 // Botni yaratish
-const bot = new Bot(process.env.BOT_TOKEN!);
+const bot = new Bot(process.env.BOT_TOKEN as string);
 
 const lastCodeSent: { [key: number]: number } = {}; // Foydalanuvchining oxirgi kod yuborilgan vaqtini saqlaydi
+const userCounters: { [key: number]: number } = {}; // Har bir foydalanuvchi uchun counter
 
 // Kod jo'natish funksiyasi
 function sendCode(): string {
@@ -14,27 +16,44 @@ function sendCode(): string {
 }
 
 // Start komandasi
-bot.command("start", (ctx: Context) => {
+bot.command("start", async (ctx: Context) => {
   const chatId = ctx.chat?.id;
+  if (!chatId) {
+    return await ctx.reply("Chat ID topilmadi!");
+  }
+
+  // Counterni yangilash
+  if (!userCounters[chatId]) {
+    userCounters[chatId] = 0; // Agar mavjud bo'lmasa, 0 ga tenglashtiramiz
+  }
+  userCounters[chatId] += 1;
+
   const currentTime = Date.now();
   const sec = 60;
 
-  // Agar birinchi marta kod so'ralayotgan bo'lsa yoki 1 daqiqa o'tgan bo'lsa kod yuboriladi
-  if (
-    !lastCodeSent[chatId as number] ||
-    currentTime - lastCodeSent[chatId as number] > 60000
-  ) {
+  // 60 soniyadan so'ng counterni 0 ga qaytarish
+  setTimeout(() => {
+    userCounters[chatId] = 0;
+  }, 60000);
+
+  if (!lastCodeSent[chatId] || currentTime - lastCodeSent[chatId] > 60000) {
     const code = sendCode();
-    ctx.reply(`1daqiqalik kodingiz!: <pre>${code}</pre>`, {
+    await ctx.reply(`<b>1daqiqalik kodingiz!</b> <pre>${code}</pre>`, {
       parse_mode: "HTML",
     });
-    lastCodeSent[chatId as number] = currentTime;
+    lastCodeSent[chatId] = currentTime;
   } else {
-    ctx.reply(
-      `Kechirasiz, sizning kodingiz muddati tugamagan. ${
-        sec - (currentTime - lastCodeSent[chatId as number])
-      }`
-    );
+    if (userCounters[chatId] <= 3) {
+      await ctx.reply(
+        `<b>Kechirasiz, sizning kodingiz muddati tugamagan☝.</b>\n<b>${
+          sec - Math.floor((currentTime - lastCodeSent[chatId]) / 1000)
+        }</b> - soniyadan so'ng qayta urinib ko'ring!.`,
+        { parse_mode: "HTML" }
+      );
+    } else {
+      await ctx.reply("Spam qilmang bot toxtab qoladi!");
+      return;
+    }
   }
 });
 
