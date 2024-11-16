@@ -1,8 +1,20 @@
 import { Bot, Context } from "grammy";
 import dotenv from "dotenv";
+import express, { urlencoded } from "express";
+import { log } from "console";
+import { PrismaClient } from "@prisma/client";
 
+//configs
 dotenv.config();
+const prisma = new PrismaClient();
+const app = express();
 
+app.set("view engine", "ejs");
+app.set("views", "./views");
+app.use(express.static("views"));
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 // Botni yaratish
 const bot = new Bot(process.env.BOT_TOKEN as string);
 
@@ -55,3 +67,22 @@ bot.command("start", async (ctx: Context) => {
 });
 
 bot.start();
+
+app.get("/", (req, res) => {
+  res.render("./index");
+});
+
+app.post("/reg", async (req, res) => {
+  let { username, password, email } = req.body;
+  log(username, password, email);
+  let data = await prisma.users.create({
+    data: {
+      username,
+      password,
+      email,
+    },
+  });
+  log(data);
+});
+
+app.listen(8000, () => log(9000));
