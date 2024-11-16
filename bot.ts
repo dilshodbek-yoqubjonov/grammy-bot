@@ -1,21 +1,18 @@
 import { Bot, Context } from "grammy";
 import dotenv from "dotenv";
-import { log } from "console";
 
 dotenv.config();
 
 // Botni yaratish
 const bot = new Bot(process.env.BOT_TOKEN as string);
 
-const lastCodeSent: { [key: number]: number } = {}; // Foydalanuvchining oxirgi kod yuborilgan vaqtini saqlaydi
+const lastCodeSent: { [key: number]: number } = {}; // Oxirgi kod yuborilgan vaqtni saqlaydi
 const userCounters: { [key: number]: number } = {}; // Har bir foydalanuvchi uchun counter
 
-// Kod jo'natish funksiyasi
 function sendCode(): string {
   return Math.floor(100000 + Math.random() * 900000).toString(); // 6 xonali random kod
 }
-
-// Start komandasi
+// /start buyrug'i
 bot.command("start", async (ctx: Context) => {
   const chatId = ctx.chat?.id;
   if (!chatId) {
@@ -24,14 +21,14 @@ bot.command("start", async (ctx: Context) => {
 
   // Counterni yangilash
   if (!userCounters[chatId]) {
-    userCounters[chatId] = 0; // Agar mavjud bo'lmasa, 0 ga tenglashtiramiz
+    userCounters[chatId] = 0;
   }
   userCounters[chatId] += 1;
 
   const currentTime = Date.now();
   const sec = 60;
 
-  // 60 soniyadan so'ng counterni 0 ga qaytarish
+  // 60 soniyadan so'ng counterni 0 ga tushirish
   setTimeout(() => {
     userCounters[chatId] = 0;
   }, 60000);
