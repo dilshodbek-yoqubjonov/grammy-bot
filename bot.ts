@@ -1,88 +1,102 @@
-import { Bot, Context } from "grammy";
+import express, { Request, Response } from "express";
 import dotenv from "dotenv";
-import express, { urlencoded } from "express";
-import { log } from "console";
+import { Bot } from "grammy";
 import { PrismaClient } from "@prisma/client";
+import { log } from "console";
 
-//configs
 dotenv.config();
-const prisma = new PrismaClient();
 const app = express();
-
-app.set("view engine", "ejs");
-app.set("views", "./views");
-app.use(express.static("views"));
+const bot = new Bot(process.env.BOT_TOKEN as string);
+const prisma = new PrismaClient();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-// Botni yaratish
-const bot = new Bot(process.env.BOT_TOKEN as string);
 
-const lastCodeSent: { [key: number]: number } = {}; // Oxirgi kod yuborilgan vaqtni saqlaydi
-const userCounters: { [key: number]: number } = {}; // Har bir foydalanuvchi uchun counter
+const userCodes: { [key: string]: string } = {}; // Kodlarni saqlash
 
-function sendCode(): string {
-  return Math.floor(100000 + Math.random() * 900000).toString(); // 6 xonali random kod
+// Tasdiqlash kodi yaratish funksiyasi
+function generateCode(): string {
+  return Math.floor(100000 + Math.random() * 900000).toString();
 }
-// /start buyrug'i
-bot.command("start", async (ctx: Context) => {
-  const chatId = ctx.chat?.id;
-  if (!chatId) {
-    return await ctx.reply("Chat ID topilmadi!");
-  }
 
-  // Counterni yangilash
-  if (!userCounters[chatId]) {
-    userCounters[chatId] = 0;
-  }
-  userCounters[chatId] += 1;
+// Ro'yxatdan o'tish sahifasi
+app.get("/register", (req: Request, res: Response) => {
+  res.send(`
+    <form action="/register" method="POST">
+      <input type="text" name="username" placeholder="Username" required />
+      <input type="password" name="password" placeholder="Password" required />
+      <input type="email" name="email" placeholder="Email" required />
+      <button type="submit">Ro'yxatdan o'tish</button>
+    </form>
+  `);
+});
 
-  const currentTime = Date.now();
-  const sec = 60;
+// Ro'yxatdan o'tishni qayta ishlash
+app.post("/register", async (req: Request, res: Response) => {
+  const { username, password, email } = req.body;
 
-  // 60 soniyadan so'ng counterni 0 ga tushirish
-  setTimeout(() => {
-    userCounters[chatId] = 0;
-  }, 60000);
-
-  if (!lastCodeSent[chatId] || currentTime - lastCodeSent[chatId] > 60000) {
-    const code = sendCode();
-    await ctx.reply(`<b>1daqiqalik kodingiz!</b> <pre>${code}</pre>`, {
-      parse_mode: "HTML",
+  try {
+    const user = await prisma.users.create({
+      data: { username, password, email },
     });
-    lastCodeSent[chatId] = currentTime;
-  } else {
-    if (userCounters[chatId] <= 3) {
-      await ctx.reply(
-        `<b>Kechirasiz, sizning kodingiz muddati tugamagan☝.</b>\n<b>${
-          sec - Math.floor((currentTime - lastCodeSent[chatId]) / 1000)
-        }</b> - soniyadan so'ng qayta urinib ko'ring!.`,
-        { parse_mode: "HTML" }
-      );
-    } else {
-      await ctx.reply("Spam qilmang bot toxtab qoladi!");
-      return;
-    }
+
+    const link = `https://t.me/telegrafdemobot?start=${user.id}`;
+    res.send(`
+      <p>Ro'yxatdan muvaffaqiyatli o'tdingiz!</p>
+      <p>Telegram orqali tasdiqlash uchun havola:</p>
+      <a href="${link}" target="_blank">${link}</a>
+    `);
+  } catch (error) {
+    res.status(500).send("Xatolik yuz berdi!");
   }
 });
 
-bot.start();
-
-app.get("/", (req, res) => {
-  res.render("./index");
+// Tasdiqlash sahifasi
+app.get("/verify", (req: Request, res: Response) => {
+  res.send(`
+    <form action="/verify" method="POST">   
+      <input type="hidden" name="userId" value="${req.query.userId}" />
+      <input type="text" name="code" placeholder="Kodni kiriting" required />
+      <button type="submit">Tasdiqlash</button>
+    </form>
+  `);
 });
 
-app.post("/reg", async (req, res) => {
-  let { username, password, email } = req.body;
-  log(username, password, email);
-  let data = await prisma.users.create({
-    data: {
-      username,
-      password,
-      email,
-    },
-  });
-  log(data);
+// Tasdiqlashni qayta ishlash
+app.post("/verify", (req: any, res: any) => {
+  const { userId, code } = req.body;
+  log(req.body);
+  log(userCodes[userId]);
+
+  if (!userCodes[userId] || userCodes[userId] !== code) {
+    return res.status(400).send("Kod noto'g'ri!");
+  }
+
+  delete userCodes[userId]; // Kodni o'chirish
+  res.send("Tasdiqlash muvaffaqiyatli! Xush kelibsiz.");
 });
 
-app.listen(8000, () => log(9000));
+// Serverni ishga tushirish
+app.listen(8000, () => console.log("Server 8000 portda ishlamoqda."));
+
+bot.command("start", async (ctx) => {
+  const userId = ctx.match;
+  log(ctx);
+  log(ctx.match);
+
+  if (!userId) {
+    return await ctx.reply("Foydalanuvchi ID topilmadi!");
+  }
+
+  const code = generateCode();
+  userCodes[userId] = code;
+
+  await ctx.reply(
+    `Tasdiqlash uchun kodingiz: ${code}\nSaytga qaytib kodni kiriting.`
+  );
+});
+
+// Botni ishga tushirish
+bot.start().then(() => {
+  log("RUneed");
+});
