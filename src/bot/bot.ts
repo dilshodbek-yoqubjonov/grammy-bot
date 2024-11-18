@@ -2,8 +2,7 @@ import { Bot } from "grammy";
 import dotenv from "dotenv";
 dotenv.config();
 
-// const bot = new Bot(process.env.BOT_TOKEN as string);
-const bot = new Bot("7808332905:AAHBTczeDR5M-6fgacQN4GvHumLd27EEuE0");
+const bot = new Bot(process.env.BOT_TOKEN as string);
 console.log(bot);
 
 function generateCode(): string {
