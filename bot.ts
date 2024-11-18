@@ -21,17 +21,9 @@ function generateCode(): string {
 
 // Ro'yxatdan o'tish sahifasi
 app.get("/register", (req: Request, res: Response) => {
-  res.send(`
-    <form action="/register" method="POST">
-      <input type="text" name="username" placeholder="Username" required />
-      <input type="password" name="password" placeholder="Password" required />
-      <input type="email" name="email" placeholder="Email" required />
-      <button type="submit">Ro'yxatdan o'tish</button>
-    </form>
-  `);
+  res.render("./views/html/index");
 });
 
-// Ro'yxatdan o'tishni qayta ishlash
 app.post("/register", async (req: Request, res: Response) => {
   const { username, password, email } = req.body;
 
@@ -41,11 +33,7 @@ app.post("/register", async (req: Request, res: Response) => {
     });
 
     const link = `https://t.me/telegrafdemobot?start=${user.id}`;
-    res.send(`
-      <p>Ro'yxatdan muvaffaqiyatli o'tdingiz!</p>
-      <p>Telegram orqali tasdiqlash uchun havola:</p>
-      <a href="${link}" target="_blank">${link}</a>
-    `);
+    res.render("./html/");
   } catch (error) {
     res.status(500).send("Xatolik yuz berdi!");
   }

@@ -1,3 +1,51 @@
+import { Bot } from "grammy";
+import dotenv from "dotenv";
+dotenv.config();
+
+// const bot = new Bot(process.env.BOT_TOKEN as string);
+const bot = new Bot("7808332905:AAHBTczeDR5M-6fgacQN4GvHumLd27EEuE0");
+console.log(bot);
+
+function generateCode(): string {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+const userCodes: { [key: string]: string } = {};
+const lastCodeSent: { [key: number]: number } = {};
+
+bot.command("start", async (ctx) => {
+  const userId = ctx.match;
+  const chatId = ctx.chat?.id;
+
+  if (!userId || !chatId) {
+    return await ctx.reply(
+      `<b>Foydalanuvchi ID topilmadi!\nIltimos saytda korsatilgan link orqali kiring</b>`,
+      { parse_mode: "HTML" }
+    );
+  }
+
+  const currentTime = Date.now();
+  const sec = 60000;
+
+  if (!lastCodeSent[chatId] || currentTime - lastCodeSent[chatId] > sec) {
+    const code = generateCode();
+    await ctx.reply(`<b>1daqiqalik kodingiz!</b> <pre>${code}</pre>`, {
+      parse_mode: "HTML",
+    });
+    userCodes[userId] = code;
+  } else {
+    await ctx.reply(
+      `<b>Kechirasiz, sizning kodingiz muddati tugamagan☝.</b>\n<b>${
+        sec / 1000 - Math.floor((currentTime - lastCodeSent[chatId]) / 1000)
+      }</b> - soniyadan so'ng qayta urinib ko'ring!.`,
+      { parse_mode: "HTML" }
+    );
+  }
+});
+bot.start();
+
+// -------------------------------------------------------------------
+
 // import { Bot, Context } from "grammy";
 // import dotenv from "dotenv";
 // import express, { urlencoded } from "express";
@@ -89,7 +137,7 @@
 //       email,
 //     },
 //   });
-//   await sendCodeToTelegram(chatId); 
+//   await sendCodeToTelegram(chatId);
 //   res.redirect("/verify");
 // });
 
