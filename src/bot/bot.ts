@@ -1,9 +1,8 @@
 import { Bot } from "grammy";
 import dotenv from "dotenv";
-dotenv.config();
+dotenv.config({ path: __dirname + "/../../.env" });
 
 const bot = new Bot(process.env.BOT_TOKEN as string);
-console.log(bot);
 
 function generateCode(): string {
   return Math.floor(100000 + Math.random() * 900000).toString();
