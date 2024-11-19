@@ -17,7 +17,7 @@ bot.command("start", async (ctx) => {
 
   if (!userId || !chatId) {
     return await ctx.reply(
-      `<b>Foydalanuvchi ID topilmadi!\nIltimos saytda korsatilgan link orqali kiring</b>`,
+      `<b>Foydalanuvchi ID topilmadi!\nIltimos saytda korsatilgan link orqali kiring!</b>`,
       { parse_mode: "HTML" }
     );
   }
