@@ -33,14 +33,15 @@ bot.command("start", async (ctx) => {
     userCodes[userId] = code;
   } else {
     await ctx.reply(
-      `<b>Kechirasiz, sizning kodingiz muddati tugamagan☝.</b>\n<b>${
+      `<b>Kechirasiz, sizning kodingiz muddati hali tugamagan☝.</b>\n<b>${
         sec / 1000 - Math.floor((currentTime - lastCodeSent[chatId]) / 1000)
       }</b> - soniyadan so'ng qayta urinib ko'ring!.`,
       { parse_mode: "HTML" }
     );
   }
 });
-bot.start( );
+//start bot
+bot.start();
 
 // -------------------------------------------------------------------
 
